@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Swipe</title>
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.3s;
+        }
+
+        #onBtn {
+            background-color: #4CAF50;
+        }
+
+        #offBtn {
+            background-color: #f44336;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <button id="onBtn">Start Auto Swipe</button>
+    <button id="offBtn">Stop Auto Swipe</button>
+    <div class="status" id="status">Status: Inactive</div>
+
+    <script>
+        let swipeInterval;
+        const swipeDistance = 1000; // Adjust swipe distance as needed
+
+        function swipeUp() {
+            window.scrollBy({
+                top: -swipeDistance,
+                left: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        document.getElementById('onBtn').addEventListener('click', () => {
+            if (!swipeInterval) {
+                swipeInterval = setInterval(swipeUp, 30000);
+                document.getElementById('status').textContent = 'Status: Active';
+                // Request wake lock to keep screen on (if supported)
+                if ('wakeLock' in navigator) {
+                    navigator.wakeLock.request('screen');
+                }
+                swipeUp(); // Initial swipe
+            }
+        });
+
+        document.getElementById('offBtn').addEventListener('click', () => {
+            if (swipeInterval) {
+                clearInterval(swipeInterval);
+                swipeInterval = null;
+                document.getElementById('status').textContent = 'Status: Inactive';
+                // Release wake lock
+                if ('wakeLock' in navigator) {
+                    navigator.wakeLock.release();
+                }
+            }
+        });
+    </script>
+
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
